@@ -1,0 +1,84 @@
+body{
+    background-color: black;
+}
+.movie_recommender{
+    position: relative;
+    height: 100vh;
+    background: url("pexels-pietro-jeng-65128.jpg") center/cover no-repeat; /* Replace with your image or video styles */
+    display: flex;
+    opacity:0.7;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: #fff; /* Text color */
+    text-align: center;
+
+}
+/* Resetting default margin and padding for the list */
+.pull-right {
+    list-style-type: none;
+    margin-top:1em;
+    padding: 0.5em;
+    text-align: right;
+    margin-right: auto; 
+    margin-left: auto;
+}
+.home{
+    display: flex;
+    margin:0.5em;
+    content: url("home.png");
+    border:none;
+    background:transparent;
+}
+.signout{
+    margin:0.5em;
+    content: url("sign-out.png");
+    background:transparent;
+    border: none;
+    display: flex;
+
+}
+#header-div {
+    color:white;
+    display: flex;
+}
+/* Styling for individual list items */
+li {
+    margin-right:0; /* Adjust the spacing between items as needed */
+    display: inline;
+}
+
+/* Styling for the links */
+li a {
+    text-decoration: none;
+    padding: 8px 12px; /* Adjust padding to control the size of the clickable area */
+    border: 1px solid #ccc;
+    border-radius: 5px; /* Optional: Add rounded corners */
+    color:white;
+}
+
+/* Hover effect */
+li a:hover {
+    background-color: #f0f0f0; /* Change background color on hover */
+}
+
+#footer-div {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+}
+.head_text {
+    background-color: black;
+    color:white;
+    font-size: 6em;
+    font-family:"Permanent Marker";
+    border-radius: 0.5em;
+}
+p{
+    color:#fff;
+}
+
+label{
+    color:white;
+}
