@@ -4,3 +4,14 @@ h2{
 h1{
     color: white;
 }
+.mb-3{
+    color:aliceblue;
+}
+.form-flex {
+    display:flex;
+    margin:0.25em;
+}
+.mr-2{
+    margin-right: 0.25em;
+    margin-top: auto;
+}

@@ -2,26 +2,63 @@
 {% block content %}
 <div class="container">
     <h2>Movies</h2>
-
+    <!-- Genre selection form -->
+    <form action="/movies" method="get" class="form-flex mb-3">
+            <label class="mr-2" for="genre{{ i }}">Genre:</label>
+            <select class="form-control mr-2" name="genre{{ i }}" id="genre{{ i }}">
+                <option value="" disabled>Select Genre</option>
+                {% for option in genre_options %}
+                    <option value="{{ option }}">{{ option }}</option>
+                {% endfor %}
+            </select>
+        <label class="mr-2" for="rating">Rating:</label>
+        <select class="form-control mr-2" name="rating" id="rating">
+            <option value="">All Ratings</option>
+            <option value="5">5 and above</option>
+            <option value="4">4 and above</option>
+            <option value="3">3 and above</option>
+            <option value="2">2 and above</option>
+        </select>
+        <button type="submit" class="btn btn-primary">Filter</button>
+    </form>
+     <!-- Display chosen genres -->
+     {% if selected_genres %}
+     <div class="mb-3">
+         <strong>Chosen Genres:</strong>
+         {% for genre in selected_genres %}
+             <span class="badge badge-info">{{ genre }}</span>
+         {% endfor %}
+     </div>
+ {% endif %}
     {% for m in movies %}
         <div class="panel panel-default">
             <div class="panel-heading"><b>{{ m.title }}</b></div>
             <div class="panel-body">
                 <p>
                     {% for g in m.genres %}
-                        <span class="label label-default">{{ g.genre }}</span>
+                        <span class="badge badge-info">{{ g.genre }}</span>
                     {% endfor %}
                 </p>
             </div>
-              <div class="panel-footer">Rate:
-                  <a href="#" class="card-link">&#9733;</a>
-                  <a href="#" class="card-link">&#9733;</a>
-                  <a href="#" class="card-link">&#9733;</a>
-                  <a href="#" class="card-link">&#9733;</a>
-                  <a href="#" class="card-link">&#9733;</a> Stars
-              </div>
+            <div class="panel-footer">Rate:
+                <a href="#" class="card-link">&#9733;</a>
+                <a href="#" class="card-link">&#9733;</a>
+                <a href="#" class="card-link">&#9733;</a>
+                <a href="#" class="card-link">&#9733;</a>
+                <a href="#" class="card-link">&#9733;</a> Stars
+            </div>
         </div>
     {% endfor %}
 </div>
-
+<script>
+    function validateForm() {
+        var selectedGenres = document.getElementById("genre").selectedOptions;
+        if (selectedGenres.length > 3) {
+            alert("Please select up to three genres.");
+            return false;
+        }
+        return true;
+    }
+    
+    </script>
 {% endblock %}
