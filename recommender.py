@@ -1,6 +1,6 @@
 # Contains parts from: https://flask-user.readthedocs.io/en/latest/quickstart_app.html
 
-from flask import Flask, render_template
+from flask import Flask, render_template,request
 from flask_user import login_required, UserManager
 
 from models import db, User, Movie, MovieGenre
@@ -51,10 +51,33 @@ def home_page():
 @login_required  # User must be authenticated
 def movies_page():
     # String-based templates
-
+    selected_genres = []
+    selected_rating = request.args.get('rating')
     # first 10 movies
-    movies = Movie.query.limit(10).all()
+    selected_genre = request.args.get('genre')
 
+    if selected_genre:
+        movies = Movie.query.filter(Movie.genres.any(MovieGenre.genre == selected_genre)).limit(10).all()
+    else:
+        movies = Movie.query.limit(10).all()
+
+    # Fetch distinct genres from the database
+    distinct_genres = db.session.query(MovieGenre.genre).distinct().all()
+
+    # Convert the result to a list of strings
+    genre_options = [genre[0] for genre in distinct_genres]
+    # Handle form submissions
+    if request.method == 'POST':
+        selected_genres = [request.form.get(f'genre{i}') for i in range(1, 4) if request.form.get(f'genre{i}')]
+
+        # Filter movies based on selected genres
+        if selected_genres:
+            movies = Movie.query.filter(Movie.genres.any(MovieGenre.genre.in_(selected_genres))).all()
+        else:
+            # If no genres are selected, display all movies
+            movies = Movie.query.all()
+
+            
     # only Romance movies
     # movies = Movie.query.filter(Movie.genres.any(MovieGenre.genre == 'Romance')).limit(10).all()
 
@@ -64,7 +87,7 @@ def movies_page():
     #     .filter(Movie.genres.any(MovieGenre.genre == 'Horror')) \
     #     .limit(10).all()
 
-    return render_template("movies.html", movies=movies)
+    return render_template("movies.html", movies=movies,genre_options=genre_options,selected_genres=selected_genres)
 
 
 # Start development web server

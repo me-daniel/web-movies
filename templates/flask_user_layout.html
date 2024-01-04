@@ -8,14 +8,13 @@
 
     <!-- Bootstrap -->
     <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Link external CSS file -->
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='home.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='movies.css') }}">
+    <link href='https://fonts.googleapis.com/css?family=Permanent+Marker' rel='stylesheet'>
+    <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet'>
 
     <!-- In-lining styles to avoid needing a separate .css file -->
-    <style>
-        hr { border-color: #cccccc; margin: 0; }
-        .no-margins { margin: 0px; }
-        .with-margins { margin: 10px; }
-        .col-centered { float: none; margin: 0 auto; }
-    </style>
 
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -32,24 +31,27 @@
 <body>
     {% block body %}
     <div id="header-div" class="clearfix with-margins">
-        <div class="pull-left"><a href="/"><h1 class="no-margins">{{ user_manager.USER_APP_NAME }}</h1></a></div>
-        <div class="pull-right">
+        <button class="home" onclick="navigateToHome()">
+            {% trans %}Home{% endtrans %}
+        </button>        
+        <ul class="pull-right">
             {% if call_or_get(current_user.is_authenticated) %}
-                <a href="{{ url_for('user.edit_user_profile') }}">{{ current_user.username or current_user.email }}</a>
+                <li><a href="{{ url_for('user.edit_user_profile') }}"> Welcome {{ current_user.username or current_user.email }} !</a></li>
                 &nbsp; | &nbsp;
-                <a href="{{ url_for('user.logout') }}">{%trans%}Sign out{%endtrans%}</a>
+                <li><a href="{{ url_for('movies_page') }}">What do you want to watch?</a></li>
             {% else %}
+            <li>
                 <a href="{{ url_for('user.login') }}">{%trans%}Sign in{%endtrans%}</a>
+            </li>
+            <li><a href={{ url_for('home_page') }}>Home page</a></li>
             {% endif %}
-        </div>
+        </ul>
+        <form action="{{ url_for('user.logout') }}" method="post">
+            <button class="signout" type="submit">{% trans %}Logout{% endtrans %}</button>
+        </form>
     </div>
     {% block menu %}
-    <div id="menu-div" class="with-margins">
-        <a href="/">{%trans%}Home page{%endtrans%}</a>
-    </div>
     {% endblock %}
-    <hr class="no-margins"/>
-
     <div id="main-div" class="with-margins">
     {# One-time system messages called Flash messages #}
     {% block flash_messages %}
@@ -66,15 +68,9 @@
     {% endblock %}
 
     {% block main %}
-        {% block content %}{% endblock %}
+        {% block content %}
+        {% endblock %}
     {% endblock %}
-    </div>
-
-    <br/>
-    <hr class="no-margins"/>
-    <div id="footer-div" class="clearfix with-margins">
-        <div class="pull-left">{{ user_manager.USER_APP_NAME }} {{ user_manager.USER_APP_VERSION }}</div>
-        <div class="pull-right">Just practicing... CogSci Osnabrück 2023</div>
     </div>
     {% endblock %}
 
@@ -83,6 +79,11 @@
     <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
     <!-- Bootstrap -->
     <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+    <script>
+        function navigateToHome() {
+            window.location.href = "/";
+        }
+    </script>
 
     {# *** Allow sub-templates to insert extra html to the bottom of the body *** #}
     {% block extra_js %}{% endblock %}
