@@ -28,9 +28,12 @@ class Movie(db.Model):
     genres = db.relationship('MovieGenre', backref='movie', lazy=True)
     tags = db.relationship('MovieTag', backref='movie', lazy=True)
     links = db.relationship('MovieLink', backref='movie', lazy=True)
+    ratings = db.relationship('Rating', backref='movie',lazy=True)
     def average_rating(self):
         ratings = [rating.rating for rating in self.ratings]
-        return sum(ratings) / len(ratings) if ratings else 0
+        average_rating= sum(ratings) / len(ratings) if ratings else 0
+        return average_rating
+    print(average_rating)
 
 class MovieGenre(db.Model):
     __tablename__ = 'movie_genres'
@@ -57,5 +60,5 @@ class MovieLink(db.Model):
     __tablename__ = 'movie_websites'
     id = db.Column(db.Integer, primary_key=True)
     movie_id = db.Column(db.Integer, db.ForeignKey('movies.id'), nullable=False)
-    imdb_id = db.Column(db.Integer, db.ForeignKey('movies.id'), nullable=False)
-    tmdb_id = db.Column(db.Integer, db.ForeignKey('movies.id'), nullable=False)
+    imdb_id = db.Column(db.Integer, db.ForeignKey('imdb_id'), nullable=False)
+    tmdb_id = db.Column(db.Integer, db.ForeignKey('tmdb_id'), nullable=False)
