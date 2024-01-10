@@ -66,5 +66,5 @@ class MovieTag(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, nullable=False)
     movie_id = db.Column(db.Integer, db.ForeignKey('movies.id'), nullable=False)
-    tag = db.Column(db.String(255), nullable=False, server_default='')
+    tag = db.Column(db.String(255), nullable=False, server_default='',unique=True)
     timestamp = db.Column(db.Integer, nullable=False)

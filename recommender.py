@@ -53,7 +53,7 @@ def home_page():
 def movies_page():
     # get rating filter input
     selected_rating = request.args.get('rating')
-
+    filtered_movies=[]
     # get genre filter input
     selected_genre = request.args.get('genre')
     selected_genres = []
@@ -61,11 +61,15 @@ def movies_page():
         movies = Movie.query.filter(Movie.genres.any(MovieGenre.genre == selected_genre)).all()
     else:
         movies = Movie.query.limit(10).all()
-
+    if selected_rating:
+        for movie in movies:
+            if movie.average_rating() >= float(selected_rating):
+                filtered_movies.append(movie)
+    else:
+        filtered_movies = movies
     # fetch distinct genres
     distinct_genres = db.session.query(MovieGenre.genre).distinct().all()
     genre_options = [genre[0] for genre in distinct_genres]
-    
     # Handle form submissions
     if request.method == 'POST':
         selected_genres = [request.form.get(f'genre{i}') for i in range(1, 4) if request.form.get(f'genre{i}')]
@@ -73,12 +77,12 @@ def movies_page():
         # Filter movies based on selected genres
         if selected_genres:
             movies = Movie.query.filter(Movie.genres.any(MovieGenre.genre.in_(selected_genres))).all()
+                
         else:
             # If no genres are selected, display all movies
             movies = Movie.query.all()
-
     return render_template("movies.html", 
-                           movies=movies, 
+                           movies=filtered_movies, 
                            genre_options=genre_options, 
                            selected_genre=selected_genre, 
                            selected_rating=selected_rating)
