@@ -33,7 +33,7 @@ class Movie(db.Model):
     def average_rating(self):
         ratings = [rating.rating for rating in self.ratings]
         avg_rating = sum(ratings) / len(ratings) if ratings else 0
-        return avg_rating
+        return round(avg_rating, 2)
 
 class MovieGenre(db.Model):
     __tablename__ = 'movie_genres'

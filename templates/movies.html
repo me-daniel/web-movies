@@ -45,7 +45,7 @@
                     {% endfor %}
                 </p>
                 <!-- display the average rating. to do: integrate into default rating display below. -->
-                <b>{{m.average_rating}}</b>
+                <p><b style="color: black;">Average rating: {{m.average_rating()}}</b></p>
             </div>
             <p class="text">Rating: <span class="star-rating">
                 <label for="rate-{{ m.id }}-1" style="--i:1"><i class="fa-solid fa-star"></i></label>
