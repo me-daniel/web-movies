@@ -29,8 +29,8 @@
                 <!-- display additional links -->
                 <p>
                     <span style="color: black;">MovieLens: <a href="https://movielens.org/movies/{{ m.id }}" target="_blank">https://movielens.org/movies/{{ m.id }}</a></span><br>
-                    <span style="color: black;">IMDb: <a href="https://www.imdb.com/title/tt{{ m.links.imdb_id }}" target="_blank">https://www.imdb.com/title/tt{{ m.links.imdb_id }}</a></span><br>
-                    <span style="color: black;">TMDB: <a href="https://www.themoviedb.org/movie/{{ m.links.tmdb_id }}" target="_blank">https://www.themoviedb.org/movie/{{ m.links.tmdb_id }}</a></span><br>
+                    <span style="color: black;">IMDb: <a href="https://www.imdb.com/title/tt0{{ m.links[0].imdb_id }}" target="_blank">https://www.imdb.com/title/tt0{{ m.links[0].imdb_id }}</a></span><br>
+                    <span style="color: black;">TMDB: <a href="https://www.themoviedb.org/movie/{{ m.links[0].tmdb_id }}" target="_blank">https://www.themoviedb.org/movie/{{ m.links[0].tmdb_id }}</a></span><br>
                 </p>
                 <!-- display movie genres -->
                 <p>
@@ -41,12 +41,8 @@
                 <!-- display user tags -->
                 <p>
                     {% set unique_tags = [] %}
-                    {% for t in m.tags %}
-                        {% set lowercase_tag = t.tag|lower() %}
-                        {% if lowercase_tag not in unique_tags %}
-                            <span class="badge badge-info">{{ lowercase_tag }}</span>
-                            {% set _ = unique_tags.append(t.tag) %}
-                        {% endif %}
+                    {% for tag in m.unique_tags() %}
+                        <span class="badge badge-info">{{ tag }}</span>
                     {% endfor %}
                 </p>
                 <!-- display the average rating. to do: integrate into default rating display below. -->
