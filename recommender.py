@@ -76,11 +76,6 @@ def movies_page():
         else:
             # If no genres are selected, display all movies
             movies = Movie.query.all()
-    
-    # debug
-    for movie in movies:
-        ratings_array = [rating.rating for rating in movie.ratings]
-    print(ratings_array)
 
     return render_template("movies.html", 
                            movies=movies, 

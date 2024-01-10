@@ -1,5 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_user import UserMixin
+from sqlalchemy import UniqueConstraint
 
 db = SQLAlchemy()
 
@@ -34,6 +35,10 @@ class Movie(db.Model):
         ratings = [rating.rating for rating in self.ratings]
         avg_rating = sum(ratings) / len(ratings) if ratings else 0
         return round(avg_rating, 2)
+    
+    def unique_tags(self):
+        # Extract unique tags using a set comprehension
+        return {tag.tag for tag in self.tags}
 
 class MovieGenre(db.Model):
     __tablename__ = 'movie_genres'
