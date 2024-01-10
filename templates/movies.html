@@ -45,20 +45,16 @@
                     {% endfor %}
                 </p>
                 <!-- display the average rating. to do: integrate into default rating display below. -->
-                <p><b style="color: black;">Average rating: {{m.average_rating()}}</b></p>
-            </div>
-            <p class="text">Rating: <span class="star-rating">
-                <label for="rate-{{ m.id }}-1" style="--i:1"><i class="fa-solid fa-star"></i></label>
-                <input type="radio" name="rating-{{ m.id }}" id="rate-{{ m.id }}-1" value="1">
-                <label for="rate-{{ m.id }}-2" style="--i:2"><i class="fa-solid fa-star"></i></label>
-                <input type="radio" name="rating-{{ m.id }}" id="rate-{{ m.id }}-2" value="2" checked>
-                <label for="rate-{{ m.id }}-3" style="--i:3"><i class="fa-solid fa-star"></i></label>
-                <input type="radio" name="rating-{{ m.id }}" id="rate-{{ m.id }}-3" value="3">
-                <label for="rate-{{ m.id }}-4" style="--i:4"><i class="fa-solid fa-star"></i></label>
-                <input type="radio" name="rating-{{ m.id }}" id="rate-{{ m.id }}-4" value="4">
-                <label for="rate-{{ m.id }}-5" style="--i:5"><i class="fa-solid fa-star"></i></label>
-                <input type="radio" name="rating-{{ m.id }}" id="rate-{{ m.id }}-5" value="5">
-            </span></p>
+                <p><b style="color: black;">Average rating: {{ m.average_rating()|round(2) }}</b></p>
+                </div>
+                <p class="text">Rating: <span class="star-rating">
+                    {% set rounded_avg_rating = m.average_rating()|round(0) %}
+                    {% for i in range(1, 6) %}
+                        <label for="rate-{{ m.id }}-{{ i }}" style="--i:{{ i }}"><i class="fa-solid fa-star"></i></label>
+                        <input type="radio" name="rating-{{ m.id }}" id="rate-{{ m.id }}-{{ i }}"
+                            value="{{ i }}" {% if i == rounded_avg_rating %}checked{% endif %}>
+                    {% endfor %}
+                </span></p>
         </div>
     {% endfor %}
 </div>
