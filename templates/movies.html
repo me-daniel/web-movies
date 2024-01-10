@@ -2,37 +2,50 @@
 {% block content %}
 <div class="container">
     <h2>Movies</h2>
-    <!-- Genre selection form -->
-    <!-- Genre selection form -->
-<form action="/movies" method="get" class="form-flex mb-3">
-    <label class="mr-2" for="genre{{ i }}">Genre:</label>
-    <select class="form-control mr-2" name="genre" id="genre">
-        {% for option in genre_options %}
-            <option value="{{ option }}" {% if selected_genre 
-                ==option %}selected{% endif %}>{{ option }}</option>
-        {% endfor %}
-    </select>
-    <label class="mr-2" for="rating">Rating:</label>
-    <select class="form-control mr-2" name="rating" id="rating">
-        <option value="" {% if not selected_rating %}selected{% endif %}>All Ratings</option>
-        <option value="5" {% if selected_rating == '5' %}selected{% endif %}>5 and above</option>
-        <option value="4" {% if selected_rating == '4' %}selected{% endif %}>4 and above</option>
-        <option value="3" {% if selected_rating == '3' %}selected{% endif %}>3 and above</option>
-        <option value="2" {% if selected_rating == '2' %}selected{% endif %}>2 and above</option>
-    </select>
-    <button type="submit" class="btn btn-primary">Filter</button>
-</form>
+    <!-- Filter form -->
+    <form action="/movies" method="get" class="form-flex mb-3">
+        <label class="mr-2" for="genre{{ i }}">Genre:</label>
+        <select class="form-control mr-2" name="genre" id="genre">
+            {% for option in genre_options %}
+                <option value="{{ option }}" {% if selected_genre 
+                    ==option %}selected{% endif %}>{{ option }}</option>
+            {% endfor %}
+        </select>
+        <label class="mr-2" for="rating">Rating:</label>
+        <select class="form-control mr-2" name="rating" id="rating">
+            <option value="" {% if not selected_rating %}selected{% endif %}>All Ratings</option>
+            <option value="5" {% if selected_rating == '5' %}selected{% endif %}>5 and above</option>
+            <option value="4" {% if selected_rating == '4' %}selected{% endif %}>4 and above</option>
+            <option value="3" {% if selected_rating == '3' %}selected{% endif %}>3 and above</option>
+            <option value="2" {% if selected_rating == '2' %}selected{% endif %}>2 and above</option>
+        </select>
+        <button type="submit" class="btn btn-primary">Filter</button>
+    </form>
 
     {% for m in movies %}
         <div class="panel panel-default">
-            <div class="panel-heading"><b><a href="{{ url_for('movie_imdb', movie_id=m.id) }}" target="_blank">{{ m.title }}</a></b></div>
-            <div class="panel-body"><b>{{m.average_rating}}</b></div>
+            <div class="panel-heading"><b><a href="https://movielens.org/movies/{{ m.id }}" target="_blank">{{ m.title }}</a></b></div>
             <div class="panel-body">
+                <!-- display additional links -->
+                <p>
+                    <span style="color: black;">MovieLens: <a href="https://movielens.org/movies/{{ m.id }}" target="_blank">https://movielens.org/movies/{{ m.id }}</a></span><br>
+                    <span style="color: black;">IMDb: <a href="https://www.imdb.com/title/tt{{ m.links.imdb_id }}" target="_blank">https://www.imdb.com/title/tt{{ m.links.imdb_id }}</a></span><br>
+                    <span style="color: black;">TMDB: <a href="https://www.themoviedb.org/movie/{{ m.links.tmdb_id }}" target="_blank">https://www.themoviedb.org/movie/{{ m.links.tmdb_id }}</a></span><br>
+                </p>
+                <!-- display movie genres -->
                 <p>
                     {% for g in m.genres %}
-                        <span class="badge badge-info">{{ g.genre }}</span>
+                        <span class="badge badge-light-green">{{ g.genre }}</span>
                     {% endfor %}
                 </p>
+                <!-- display user tags -->
+                <p>
+                    {% for t in m.tags %}
+                        <span class="badge badge-info">{{ t.tag }}</span>
+                    {% endfor %}
+                </p>
+                <!-- display the average rating. to do: integrate into default rating display below. -->
+                <b>{{m.average_rating}}</b>
             </div>
             <p class="text">Rating: <span class="star-rating">
                 <label for="rate-{{ m.id }}-1" style="--i:1"><i class="fa-solid fa-star"></i></label>

@@ -28,12 +28,12 @@ class Movie(db.Model):
     genres = db.relationship('MovieGenre', backref='movie', lazy=True)
     tags = db.relationship('MovieTag', backref='movie', lazy=True)
     links = db.relationship('MovieLink', backref='movie', lazy=True)
-    ratings = db.relationship('Rating', backref='movie',lazy=True)
+    ratings = db.relationship('MovieRating', backref='movie',lazy=True)
+
     def average_rating(self):
         ratings = [rating.rating for rating in self.ratings]
-        average_rating= sum(ratings) / len(ratings) if ratings else 0
-        return average_rating
-    print(average_rating)
+        avg_rating = sum(ratings) / len(ratings) if ratings else 0
+        return avg_rating
 
 class MovieGenre(db.Model):
     __tablename__ = 'movie_genres'
@@ -41,24 +41,25 @@ class MovieGenre(db.Model):
     movie_id = db.Column(db.Integer, db.ForeignKey('movies.id'), nullable=False)
     genre = db.Column(db.String(255), nullable=False, server_default='')
 
-class Rating(db.Model):
-    __tablename__ = 'ratings'
+class MovieRating(db.Model):
+    __tablename__ = 'movie_ratings'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, nullable=False)
     movie_id = db.Column(db.Integer, db.ForeignKey('movies.id'), nullable=False)
     rating = db.Column(db.Float, nullable=False)
+    timestamp = db.Column(db.Float, nullable=False)
 
-# added tags
+class MovieLink(db.Model):
+    __tablename__ = 'movie_links'
+    id = db.Column(db.Integer, primary_key=True)
+    movie_id = db.Column(db.Integer, db.ForeignKey('movies.id'), nullable=False)
+    imdb_id = db.Column(db.Integer, nullable=False)
+    tmdb_id = db.Column(db.Integer, nullable=False)
+
 class MovieTag(db.Model):
     __tablename__ = 'movie_tags'
     id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, nullable=False)
     movie_id = db.Column(db.Integer, db.ForeignKey('movies.id'), nullable=False)
     tag = db.Column(db.String(255), nullable=False, server_default='')
-
-# added movie websites
-class MovieLink(db.Model):
-    __tablename__ = 'movie_websites'
-    id = db.Column(db.Integer, primary_key=True)
-    movie_id = db.Column(db.Integer, db.ForeignKey('movies.id'), nullable=False)
-    imdb_id = db.Column(db.Integer, db.ForeignKey('imdb_id'), nullable=False)
-    tmdb_id = db.Column(db.Integer, db.ForeignKey('tmdb_id'), nullable=False)
+    timestamp = db.Column(db.Integer, nullable=False)

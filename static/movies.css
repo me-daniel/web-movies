@@ -35,6 +35,10 @@ h1{
 	color: #faec1b;
 	text-shadow: 0 0 2px #ffffff, 0 0 10px #ffee58;
 }
+.badge-light-green {
+	background-color: lightgreen;
+	color: #000;  /* Set text color to ensure readability */
+}
 
 @keyframes jump {
 	0%,

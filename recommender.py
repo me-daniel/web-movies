@@ -3,7 +3,7 @@
 from flask import Flask, render_template,request,redirect,url_for
 from flask_user import login_required, UserManager
 
-from models import db, User, Movie, MovieGenre,Rating,MovieLink
+from models import db, User, Movie, MovieGenre, MovieRating, MovieLink
 from read_data import check_and_read_data
 
 # Class-based application configuration
@@ -39,43 +39,33 @@ def initdb_command():
     check_and_read_data(db)
     print('Initialized the database.')
 
+
 # The Home page is accessible to anyone
 @app.route('/')
 def home_page():
     # render home.html template
     return render_template("home.html")
-@app.route('/movie_imdb/<int:movie_id>')
-def movie_imdb(movie_id):
-    movie = Movie.query.get_or_404(movie_id)
-    link = MovieLink.query.filter_by(movie_id=movie_id).first()
 
-    if link and link.imdb_id:
-        imdb_url = f'https://www.imdb.com/title/{link.imdb_id}/'
-        return redirect(imdb_url)
-    else:
-        # Redirect to a default page if IMDb ID is not available
-        return redirect(url_for('default_imdb_page'))
 
 # The Members page is only accessible to authenticated users via the @login_required decorator
 @app.route('/movies')
 @login_required  # User must be authenticated
 def movies_page():
-    # String-based templates
-    selected_genres = []
+    # get rating filter input
     selected_rating = request.args.get('rating')
-    # first 10 movies
-    selected_genre = request.args.get('genre')
 
+    # get genre filter input
+    selected_genre = request.args.get('genre')
+    selected_genres = []
     if selected_genre:
         movies = Movie.query.filter(Movie.genres.any(MovieGenre.genre == selected_genre)).all()
     else:
         movies = Movie.query.limit(10).all()
 
-    # Fetch distinct genres from the database
+    # fetch distinct genres
     distinct_genres = db.session.query(MovieGenre.genre).distinct().all()
-
-    # Convert the result to a list of strings
     genre_options = [genre[0] for genre in distinct_genres]
+    
     # Handle form submissions
     if request.method == 'POST':
         selected_genres = [request.form.get(f'genre{i}') for i in range(1, 4) if request.form.get(f'genre{i}')]
@@ -86,25 +76,24 @@ def movies_page():
         else:
             # If no genres are selected, display all movies
             movies = Movie.query.all()
+    
+    # debug
     for movie in movies:
-        ratings_array =[rating.rating for rating in movie.ratings]
+        ratings_array = [rating.rating for rating in movie.ratings]
     print(ratings_array)
 
-    # Commit the changes to the database
-    db.session.commit()
-            
-    # only Romance movies
-    # movies = Movie.query.filter(Movie.genres.any(MovieGenre.genre == 'Romance')).limit(10).all()
+    return render_template("movies.html", 
+                           movies=movies, 
+                           genre_options=genre_options, 
+                           selected_genre=selected_genre, 
+                           selected_rating=selected_rating)
 
-    # only Romance AND Horror movies
-    # movies = Movie.query\
-    #     .filter(Movie.genres.any(MovieGenre.genre == 'Romance')) \
-    #     .filter(Movie.genres.any(MovieGenre.genre == 'Horror')) \
-    #     .limit(10).all()
-    return render_template("movies.html", movies=movies,genre_options=genre_options,selected_genre=selected_genre,selected_rating=selected_rating)
+
+@app.route('/recommendations')
+def recommendations_page():
+    return render_template("recommendations.html")
 
 
 # Start development web server
 if __name__ == '__main__':
     app.run(port=5000, debug=True)
-    app.add_url_rule('/movie_imdb/<int:movie_id>', 'movie_imdb', movie_imdb)
