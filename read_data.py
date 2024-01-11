@@ -16,6 +16,7 @@ def check_and_read_data(db):
                         title = row[1]
                         movie = Movie(id=id, title=title)
                         db.session.add(movie)
+                        print(movie)
                         genres = row[2].split('|')  # genres is a list of genres
                         for genre in genres:  # add each genre to the movie_genre table
                             movie_genre = MovieGenre(movie_id=id, genre=genre)
@@ -30,11 +31,11 @@ def check_and_read_data(db):
                     print(count, "movies read")
 
     # read ratings from csv if movie table is empty in db
-    if MovieRating.query.count() == 0:
+    if MovieRating.query.count() == 0 or User.query.count() != 1:
         with open('data/ratings.csv', newline='', encoding='utf8') as csvfile:
                 reader = csv.reader(csvfile, delimiter=',')
                 count = 0
-                dummy_user = 0 #User.query.count()+1
+                dummy_user = 0
                 for row in reader:
                     if count > 0:
                         try:
@@ -45,10 +46,10 @@ def check_and_read_data(db):
                             movie_rating = MovieRating(user_id = user_id, movie_id=movie_id, rating=rating, timestamp=timestamp)
                             db.session.add(movie_rating)
                             if user_id != dummy_user:
-                                user = User(id=user_id)
-                                db.session.add(user)
+                                user = User(id=user_id, username=f"user_{user_id}")
                                 dummy_user = user_id
-                            db.session.commit()
+                                db.session.add(user)
+                                db.session.commit()
                         except IntegrityError:
                             print("Ignoring duplicate rating for user:", user_id, "and movie:", movie_id)
                             db.session.rollback()
