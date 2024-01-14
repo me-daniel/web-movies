@@ -44,6 +44,8 @@
                 <li><a href="{{ url_for('movies_page') }}">What do you want to watch?</a></li>
                 &nbsp; | &nbsp;
                 <li><a href="{{ url_for('user_ratings',user_id=current_user.id) }}">Movies rated by you</a></li>
+                &nbsp; | &nbsp;
+                <li><a href="{{ url_for('recommendations_page') }}">Recommendations for you</a></li>
             {% else %}
             <li>
                 <a href="{{ url_for('user.login') }}">{%trans%}Sign in{%endtrans%}</a>

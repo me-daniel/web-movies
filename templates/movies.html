@@ -1,7 +1,7 @@
 {% extends "flask_user_layout.html" %}
 {% block content %}
 <div class="container">
-    <h2>Movies</h2>
+    <h2 class="header">Movies</h2>
     <!-- Filter form -->
     <form action="/movies" method="get" class="form-flex mb-3">
         <label class="mr-2" for="genre{{ i }}">Genre:</label>
@@ -60,7 +60,7 @@
                         <label for="rate-{{ m.id }}-{{ i }}" style="--i:{{ i }}"><i class="fa-solid fa-star" onclick="updateSelectedRating({{ i }}, '{{ m.id }}')"></i></label>
                         <input type="radio" name="user_rating_{{ m.id }}" id="rate-{{ m.id }}-{{ i }}" value="{{ i }}" {% if i == your_rating %}checked{% endif %}>
                     {% endfor %}
-                    {{ rating }}
+                    {{ user_ratings[m.id] }}
                 </span></p>
                 
                 <form action="/rate_movie/{{ m.id }}" method="post" class="form-flex mb-3">

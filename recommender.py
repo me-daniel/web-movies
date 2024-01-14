@@ -3,6 +3,7 @@
 from flask import Flask, render_template,request,redirect,url_for,flash
 from flask_user import login_required, UserManager,current_user
 from sqlalchemy.orm import joinedload
+from sqlalchemy.exc import IntegrityError
 from models import db, User, Movie, MovieGenre, MovieRating, MovieLink,UserRating
 from read_data import check_and_read_data
 
@@ -103,14 +104,28 @@ def recommendations_page():
 def rate_movie(movie_id):
     # Retrieve the user's rating from the form
     user_rating = request.form.get('user_rating')
-    print(user_rating)
-    # Create a new Rating instance and add it to the database
-    rating = UserRating(user_id=current_user.id, movie_id=movie_id, rating=user_rating)
-    db.session.add(rating)
-    db.session.commit()
 
-    flash('Rating submitted successfully!', 'success')
+    # Check if the user has already rated the movie
+    existing_rating = UserRating.query.filter_by(user_id=current_user.id, movie_id=movie_id).first()
+
+    if existing_rating:
+        # Update the existing rating
+        existing_rating.rating = user_rating
+        flash('Rating updated successfully!', 'success')
+    else:
+        # Create a new Rating instance and add it to the database
+        rating = UserRating(user_id=current_user.id, movie_id=movie_id, rating=user_rating)
+        db.session.add(rating)
+        flash('Rating submitted successfully!', 'success')
+
+    try:
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        flash('Error updating rating. Please try again.', 'danger')
+
     return redirect(url_for('user_ratings', user_id=current_user.id))
+
 @app.route('/user_ratings/<int:user_id>')
 def user_ratings(user_id):
     # Fetch all movies rated by the user with ID user_id

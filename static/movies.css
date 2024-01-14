@@ -14,6 +14,7 @@ h1{
 .mr-2{
     margin-right: 0.25em;
     margin-top: auto;
+	color:initial;
 }
 .star-rating {
 	white-space: nowrap;
@@ -36,13 +37,18 @@ h1{
 	text-shadow: 0 0 2px #ffffff, 0 0 10px #ffee58;
 }
 .star-rating-1 {
-	color: #FFD700; /* Set the color of the stars */
+	color:#ffee58; /* Set the color of the stars */
 	overflow: hidden;
 	position: relative;
 }
-.filled {
-	color: #FFD700; /* Set the color of the filled stars */
+.star-rating-1 i {
+	font-size: 1.2em;
+	transition: 0.3s;
+	margin:0
 }
+.filled {
+	color:#ffee58;
+	text-shadow: 0 0 2px #ffffff, 0 0 10px #ffee58; }
 .badge-light-green {
 	background-color: lightgreen;
 	color: #000;  /* Set text color to ensure readability */
@@ -59,7 +65,7 @@ h1{
 }
 .text{
     color: black;
-    margin: 0.5rem;
+    margin: 1rem 0.5rem 0.5rem 0.5rem;
 	font-size: larger;
 }
 
@@ -102,4 +108,15 @@ h1{
 .your_rating{
 	display: flex;
 	justify-content: space-between;
+}
+.container{
+	margin: auto;
+	padding: 1rem;
+}
+.form-flex.mb-3{
+	margin: 1rem;
+}
+.header{
+	font-family:"Permanent Marker";
+	color: #000;
 }

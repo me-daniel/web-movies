@@ -1,6 +1,7 @@
 {% extends "flask_user_layout.html" %}
 {% block content %}
 <div class="container">
+<h2 class="header">Your Rating</h2>
 {% for m, rating in rated_movies %}
 <div class="panel panel-default">
     <div class="panel-heading"><b class="header_title">{{ m.title }}</b>
