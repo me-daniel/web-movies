@@ -13,6 +13,9 @@
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='movies.css') }}">
     <link href='https://fonts.googleapis.com/css?family=Permanent+Marker' rel='stylesheet'>
     <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet'>
+    <link href='https://fonts.googleapis.com/css?family=Rubik+Maps' rel='stylesheet'>
+    <link href='https://fonts.googleapis.com/css?family=Caveat' rel='stylesheet'>
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" />
     <!-- In-lining styles to avoid needing a separate .css file -->
 
@@ -39,6 +42,8 @@
                 <li><a href="{{ url_for('user.edit_user_profile') }}"> Welcome {{ current_user.username or current_user.email }} !</a></li>
                 &nbsp; | &nbsp;
                 <li><a href="{{ url_for('movies_page') }}">What do you want to watch?</a></li>
+                &nbsp; | &nbsp;
+                <li><a href="{{ url_for('user_ratings',user_id=current_user.id) }}">Movies rated by you</a></li>
             {% else %}
             <li>
                 <a href="{{ url_for('user.login') }}">{%trans%}Sign in{%endtrans%}</a>

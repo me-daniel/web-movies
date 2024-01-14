@@ -23,40 +23,62 @@
     </form>
 
     {% for m in movies %}
-        <div class="panel panel-default">
-            <div class="panel-heading"><b><a href="https://movielens.org/movies/{{ m.id }}" target="_blank">{{ m.title }}</a></b></div>
-            <div class="panel-body">
-                <!-- display additional links -->
-                <p>
-                    <span style="color: black;">MovieLens: <a href="https://movielens.org/movies/{{ m.id }}" target="_blank">https://movielens.org/movies/{{ m.id }}</a></span><br>
-                    <span style="color: black;">IMDb: <a href="https://www.imdb.com/title/tt0{{ m.links[0].imdb_id }}" target="_blank">https://www.imdb.com/title/tt0{{ m.links[0].imdb_id }}</a></span><br>
-                    <span style="color: black;">TMDB: <a href="https://www.themoviedb.org/movie/{{ m.links[0].tmdb_id }}" target="_blank">https://www.themoviedb.org/movie/{{ m.links[0].tmdb_id }}</a></span><br>
-                </p>
-                <!-- display movie genres -->
-                <p>
-                    {% for g in m.genres %}
-                        <span class="badge badge-light-green">{{ g.genre }}</span>
-                    {% endfor %}
-                </p>
-                <!-- display user tags -->
-                <p>
-                    {% set unique_tags = [] %}
-                    {% for tag in m.unique_tags() %}
-                        <span class="badge badge-info">{{ tag }}</span>
-                    {% endfor %}
-                </p>
-                <!-- display the average rating. to do: integrate into default rating display below. -->
-                <p><b style="color: black;">Average rating: {{ m.average_rating()|round(2) }}</b></p>
-                </div>
-                <p class="text">Rating: <span class="star-rating">
+    <div class="panel panel-default">
+        <div class="panel-heading"><b class="header_title">{{ m.title }}</b>
+            <a href="https://movielens.org/movies/{{ m.id }}" target="_blank" class=" btn button_movielens" role="button" aria-pressed="true">MovieLens</a>
+            <a href="https://www.imdb.com/title/tt0{{ m.links[0].imdb_id }}" target="_blank" class="btn button_imdb" role="button" aria-pressed="true">IMDb</a>
+            <a href="https://www.themoviedb.org/movie/{{ m.links[0].tmdb_id }}" target="_blank" class="btn button_tmdb" role="button" aria-pressed="true">TMDb</a>
+        </div>
+        <div class="panel-body">
+            <p>
+                {% for g in m.genres %}
+                    <span class="badge badge-light-green">{{ g.genre }}</span>
+                {% endfor %}
+            </p>
+            <!-- display user tags -->
+            <div class="tags_container">
+                Tags of other users :
+                {% set unique_tags = [] %}
+                {% for tag in m.unique_tags() %}
+                    <span class="tags">{{ tag }}</span>
+                {% endfor %}
+            </div>
+            <!-- display the average rating. to do: integrate into default rating display below. -->
+            <p class="text">Average Rating:
+                <span class="star-rating-1">
                     {% set rounded_avg_rating = m.average_rating()|round(0) %}
                     {% for i in range(1, 6) %}
-                        <label for="rate-{{ m.id }}-{{ i }}" style="--i:{{ i }}"><i class="fa-solid fa-star"></i></label>
-                        <input type="radio" name="rating-{{ m.id }}" id="rate-{{ m.id }}-{{ i }}"
-                            value="{{ i }}" {% if i == rounded_avg_rating %}checked{% endif %}>
+                        <label for="rate-{{ m.id }}-{{ i }}" style="--i:{{ i }}"><i class="fa-solid fa-star {% if i <= rounded_avg_rating %}filled{% endif %}"></i></label>
                     {% endfor %}
+                </span>
+                {{ m.average_rating()|round(2) }}
+            </p>
+            <div class="your_rating">
+                <p class="text">Your Rating: <span class="star-rating" id="star-rating-{{ m.id }}">
+                    {% set your_rating = user_ratings[m.id] if m.id in user_ratings else '0' %}
+                    {% for i in range(1, 6) %}
+                        <label for="rate-{{ m.id }}-{{ i }}" style="--i:{{ i }}"><i class="fa-solid fa-star" onclick="updateSelectedRating({{ i }}, '{{ m.id }}')"></i></label>
+                        <input type="radio" name="user_rating_{{ m.id }}" id="rate-{{ m.id }}-{{ i }}" value="{{ i }}" {% if i == your_rating %}checked{% endif %}>
+                    {% endfor %}
+                    {{ rating }}
                 </span></p>
+                
+                <form action="/rate_movie/{{ m.id }}" method="post" class="form-flex mb-3">
+                    <!-- Use a hidden input to send the movie ID -->
+                    <input type="hidden" name="user_rating" id="user-rating-{{ m.id }}" value="{{ your_rating }}">
+                    
+                    <!-- Add a submit button to submit the form -->
+                    <button type="submit" class="btn btn-primary">Submit Rating</button>
+                </form> 
+            </div> 
         </div>
+    </div>
     {% endfor %}
-</div>
+    <script>
+        function updateSelectedRating(rating, movieId) {
+            document.getElementById(`user-rating-${movieId}`).value = rating;
+        }
+    </script>
+    </div>
 {% endblock %}
+

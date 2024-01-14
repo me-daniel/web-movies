@@ -35,6 +35,14 @@ h1{
 	color: #faec1b;
 	text-shadow: 0 0 2px #ffffff, 0 0 10px #ffee58;
 }
+.star-rating-1 {
+	color: #FFD700; /* Set the color of the stars */
+	overflow: hidden;
+	position: relative;
+}
+.filled {
+	color: #FFD700; /* Set the color of the filled stars */
+}
 .badge-light-green {
 	background-color: lightgreen;
 	color: #000;  /* Set text color to ensure readability */
@@ -52,4 +60,46 @@ h1{
 .text{
     color: black;
     margin: 0.5rem;
+	font-size: larger;
+}
+
+.btn{
+	border-radius: 2rem;
+	margin:0.5rem;
+	font-weight: bolder;
+}
+.button_movielens{
+	background-color: orange;
+	color:whitesmoke;
+}
+.button_imdb{
+	background-color: #faec1b;
+	color:#000
+}
+.button_tmdb{
+	background-color: blue;
+	color: aquamarine;
+}
+.header_title{
+	font-family: "Rubik Maps";
+	font-size: x-large;
+	margin:1rem,
+}
+.tags_container{
+	color: #000;
+	font-size: larger;
+}
+.tags{
+	font-family: "Caveat";
+	font-size: large;
+	color:black;
+	content: ',';
+	box-shadow: rgba(50, 50, 93, 0.25) 0px 50px 100px -20px, rgba(0, 0, 0, 0.3) 0px 30px 60px -30px, rgba(10, 37, 64, 0.35) 0px -2px 6px 0px inset;
+	border-radius: 0.5rem;
+	margin:0.2rem;
+	padding: 0.2rem 0.7rem 0.2rem 0.5rem;
+}
+.your_rating{
+	display: flex;
+	justify-content: space-between;
 }
