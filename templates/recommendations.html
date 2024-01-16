@@ -1,8 +1,20 @@
 {% extends "flask_user_layout.html" %}
 {% block content %}
-<div class="movie_recommender"> <h1 class="head_text"> {{ user_manager.USER_APP_NAME }}</h1></div>
-<div id="footer-div" class="clearfix with-margins">
-    <div class="pull-left">{{ user_manager.USER_APP_NAME }} {{ user_manager.USER_APP_VERSION }}</div>
-    <div class="pull-right">Just practicing... CogSci Osnabrück 2023</div>
-</div>
+  <div class="container">
+    <h2>Movie Recommendations</h2>
+
+    {% if recommended_movies %}
+      <ul>
+        {% for movie in recommended_movies %}
+          <li>
+            <h4>{{ movie.title }}</h4>
+            <p>{{ movie.description }}</p>
+            <!-- Add more details as needed -->
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>No recommendations available.</p>
+    {% endif %}
+  </div>
 {% endblock %}

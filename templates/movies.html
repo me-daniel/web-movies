@@ -74,6 +74,26 @@
         </div>
     </div>
     {% endfor %}
+    {% for movie in movies %}
+    <!-- Display each movie -->
+{% endfor %}
+
+<div class="pagination">
+    {{ pagination.prev() }}
+    {% for page in pagination.iter_pages() %}
+        {% if page %}
+            {% if page != pagination.page %}
+                <a href="{{ url_for('movies_page', page=page, rating=selected_rating, genre=selected_genre) }}">{{ page }}</a>
+            {% else %}
+                <strong>{{ page }}</strong>
+            {% endif %}
+        {% else %}
+            ...
+        {% endif %}
+    {% endfor %}
+    {{ pagination.next() }}
+</div>
+
     <script>
         function updateSelectedRating(rating, movieId) {
             document.getElementById(`user-rating-${movieId}`).value = rating;
