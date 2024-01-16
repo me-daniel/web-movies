@@ -8,6 +8,7 @@ from models import db, User, Movie, MovieGenre, MovieRating, MovieLink,UserRatin
 from read_data import check_and_read_data
 from sklearn.metrics.pairwise import cosine_similarity
 import pandas as pd
+from filters import pad_zero
 # Class-based application configuration
 class ConfigClass(object):
     """ Flask application config """
@@ -29,6 +30,7 @@ class ConfigClass(object):
 app = Flask(__name__)
 app.config.from_object(__name__ + '.ConfigClass')  # configuration
 app.app_context().push()  # create an app context before initializing db
+app.jinja_env.filters['pad_zero'] = pad_zero
 db.init_app(app)  # initialize database
 db.create_all()  # create database if necessary
 user_manager = UserManager(app, db, User)  # initialize Flask-User management
@@ -58,12 +60,15 @@ def movies_page():
     selected_rating = request.args.get('rating')
     # get genre filter input
     selected_genre = request.args.get('genre')
-    
+    query = request.args.get('query')
     # Fetch all movies or filtered movies based on genre
     if selected_genre:
         movies_query = Movie.query.filter(Movie.genres.any(MovieGenre.genre == selected_genre))
     else:
         movies_query = Movie.query
+    
+    if query:
+        movies_query = Movie.query.filter(Movie.title.ilike(f'%{query}%'))
 
     # Pagination
     page = request.args.get('page', 1, type=int)
@@ -80,7 +85,7 @@ def movies_page():
     # fetch distinct genres
     distinct_genres = db.session.query(MovieGenre.genre).distinct().all()
     genre_options = [genre[0] for genre in distinct_genres]
-
+    
     # Create a dictionary to store user ratings for each movie
     user_ratings_dict = {rating.movie_id: rating.rating for rating in user_ratings}
 
@@ -90,7 +95,8 @@ def movies_page():
                            selected_genre=selected_genre, 
                            selected_rating=selected_rating,
                            user_ratings=user_ratings_dict,
-                           pagination=paginated_movies)
+                           pagination=paginated_movies,
+                           query=query)
 
 @app.route('/rate_movie/<int:movie_id>', methods=['POST'])
 def rate_movie(movie_id):
@@ -205,3 +211,4 @@ def recommendations_page():
 # Start development web server
 if __name__ == '__main__':
     app.run(port=5000, debug=True)
+
