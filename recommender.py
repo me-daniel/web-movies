@@ -7,6 +7,8 @@ from sqlalchemy.exc import IntegrityError
 from models import db, User, Movie, MovieGenre, MovieRating, MovieLink
 from read_data import check_and_read_data
 from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.neighbors import NearestNeighbors
+from scipy.sparse import csr_matrix
 import pandas as pd
 import time
 
@@ -184,64 +186,54 @@ def get_user_similarity_matrix():
     user_similarity = cosine_similarity(user_movie_matrix)
 
     return user_similarity
+def create_knn_model(user_movie_matrix):
+    # Convert to CSR matrix for memory efficiency
+    csr_data = csr_matrix(user_movie_matrix.values)
+    knn_model = NearestNeighbors(metric='cosine', algorithm='brute', n_neighbors=20, n_jobs=-1)
+    knn_model.fit(csr_data)
+    return knn_model
 
-def get_movie_recommendations(user_id, user_similarity_matrix,num_recommendations=10):
-    # Fetch all movies rated by the user
-    user_rated_movies = MovieRating.query.filter_by(user_id=user_id).all()
+def get_movie_recommendations(user_id, knn_model, user_movie_matrix, num_recommendations=10):
+    # Get the index of the user in the user-movie matrix
+    user_index = user_movie_matrix.index.get_loc(user_id)
 
-    print(f"\n User rated movies: \n {user_rated_movies} \n")
+    # Get the k-nearest neighbors
+    distances, indices = knn_model.kneighbors(user_movie_matrix.iloc[user_index, :].values.reshape(1, -1), n_neighbors=num_recommendations + 1)
 
-    # Create a dictionary to store predicted ratings for unrated movies
-    predicted_ratings = {}
+    # Exclude the user itself from recommendations
+    distances = distances.flatten()[1:]
+    indices = indices.flatten()[1:]
 
-    for i, movie in enumerate(Movie.query.all()):
-        if not any(rating.movie_id == movie.id for rating in user_rated_movies):
-            print(f"Predict rating for movie {movie.id}. {i}/{len(Movie.query.all())}")
-            # Predict the rating for unrated movies
-            predicted_rating = predict_rating(user_id, movie, user_similarity_matrix)
-            predicted_ratings[movie.id] = predicted_rating
+    # Get movie recommendations
+    recommendations = list(zip(user_movie_matrix.index[indices], distances))
+    # Filter out movies that the user has already rated
+    user_rated_movie_ids = [rating.movie_id for rating in user_ratings if rating.user_id == user_id]
+    recommended_movie_ids = [movie_id for movie_id, _ in recommendations if movie_id not in user_rated_movie_ids]
 
-    # Sort the recommendations by predicted rating in descending order
-    sorted_recommendations = sorted(predicted_ratings.items(), key=lambda x: x[1], reverse=True)
-    # Return only the top 'num_recommendations' movies
-    top_recommendations = sorted_recommendations[:num_recommendations]
-
-    return top_recommendations
-
-def predict_rating(user_id, movie, user_similarity_matrix):
-    # Fetch ratings for the current movie from other users
-    ratings_for_movie = MovieRating.query.filter_by(movie_id=movie.id).all()
-
-    # Calculate weighted average based on user similarity
-    weighted_sum = 0
-    similarity_sum = 0
-
-    for rating in ratings_for_movie:
-        similarity = user_similarity_matrix[user_id-1, rating.user_id-1]
-        weighted_sum += similarity * rating.rating
-        similarity_sum += abs(similarity)
-
-    if similarity_sum == 0:
-        return 0  # Return 0 if no similar users
-
-    predicted_rating = weighted_sum / similarity_sum
-
-    return predicted_rating
-
+    return recommended_movie_ids
 # Example usage in the 'recommendations' route
 @app.route('/recommendations')
 def recommendations_page():
-    # Fetch user similarity matrix
-    user_similarity_matrix = get_user_similarity_matrix()
+    # Fetch user ratings and create a user-movie matrix
+    user_ratings = MovieRating.query.all()
+    user_ratings_df = pd.DataFrame([(rating.user_id, rating.movie_id, rating.rating) for rating in user_ratings],
+                                columns=['user_id', 'movie_id', 'rating'])
+    user_movie_matrix = pd.pivot_table(user_ratings_df, index='user_id', columns='movie_id', values='rating',fill_value=0)
+
+    # Train a k-NN model on the user-movie matrix
+    knn_model = create_knn_model(user_movie_matrix)
 
     # Get movie recommendations for the current user
     user_id = current_user.id
-    recommendations = get_movie_recommendations(user_id, user_similarity_matrix)
-
+    recommendations = get_movie_recommendations(user_id, knn_model, user_movie_matrix)
     # Fetch detailed movie information for the recommendations
-    recommended_movies = [Movie.query.get(movie_id) for movie_id, _ in recommendations]
-
-    return render_template("recommendations.html", recommended_movies=recommended_movies)
+    recommended_movies = Movie.query.options(joinedload(Movie.links), joinedload(Movie.tags)).filter(Movie.id.in_([movie_id for movie_id, _ in recommendations])).all()
+    user_ratings = MovieRating.query.filter(
+        MovieRating.movie_id.in_([movie.id for movie in recommended_movies]),
+        MovieRating.user_id == current_user.id
+    ).all()
+    user_ratings_dict = {rating.movie_id: rating.rating for rating in user_ratings}
+    return render_template("recommendations.html", recommended_movies=recommended_movies,user_ratings=user_ratings_dict)
 
 # Start development web server
 if __name__ == '__main__':
