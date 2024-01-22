@@ -16,7 +16,6 @@ def check_and_read_data(db):
                         title = row[1]
                         movie = Movie(id=id, title=title)
                         db.session.add(movie)
-                        print(movie)
                         genres = row[2].split('|')  # genres is a list of genres
                         for genre in genres:  # add each genre to the movie_genre table
                             movie_genre = MovieGenre(movie_id=id, genre=genre)
@@ -47,6 +46,7 @@ def check_and_read_data(db):
                             db.session.add(movie_rating)
                             if user_id != dummy_user:
                                 user = User(id=user_id, username=f"user_{user_id}")
+                                # to do: create list with users that have rated, have to be added, but cannot because there are existing users
                                 dummy_user = user_id
                                 db.session.add(user)
                                 db.session.commit()

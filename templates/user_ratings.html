@@ -2,11 +2,12 @@
 {% block content %}
 <div class="container">
 <h2 class="header">Your Rating</h2>
+
 {% for m, rating in rated_movies %}
 <div class="panel panel-default">
     <div class="panel-heading"><b class="header_title">{{ m.title }}</b>
         <a href="https://movielens.org/movies/{{ m.id }}" target="_blank" class=" btn button_movielens" role="button" aria-pressed="true">MovieLens</a>
-        <a href="https://www.imdb.com/title/tt0{{ m.links[0].imdb_id }}" target="_blank" class="btn button_imdb" role="button" aria-pressed="true">IMDb</a>
+        <a href="https://www.imdb.com/title/tt{{ m.links[0].imdb_id | pad_zero }}" target="_blank" class="btn button_imdb" role="button" aria-pressed="true">IMDb</a>
         <a href="https://www.themoviedb.org/movie/{{ m.links[0].tmdb_id }}" target="_blank" class="btn button_tmdb" role="button" aria-pressed="true">TMDb</a>
     </div>
     <div class="panel-body">

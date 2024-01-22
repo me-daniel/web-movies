@@ -4,11 +4,12 @@ from flask import Flask, render_template,request,redirect,url_for,flash
 from flask_user import login_required, UserManager,current_user
 from sqlalchemy.orm import joinedload
 from sqlalchemy.exc import IntegrityError
-from models import db, User, Movie, MovieGenre, MovieRating, MovieLink,UserRating
+from models import db, User, Movie, MovieGenre, MovieRating, MovieLink
 from read_data import check_and_read_data
 from sklearn.metrics.pairwise import cosine_similarity
 import pandas as pd
-from filters import pad_zero
+import time
+
 # Class-based application configuration
 class ConfigClass(object):
     """ Flask application config """
@@ -25,6 +26,10 @@ class ConfigClass(object):
     USER_ENABLE_EMAIL = False  # Disable email authentication
     USER_ENABLE_USERNAME = True  # Enable username authentication
     USER_REQUIRE_RETYPE_PASSWORD = True  # Simplify register form
+
+def pad_zero(value):
+    value=str(value)
+    return value.zfill(7) if len(value) < 7 else value
 
 # Create Flask app
 app = Flask(__name__)
@@ -77,9 +82,9 @@ def movies_page():
     movies = paginated_movies.items
 
     # Fetch user ratings for the displayed movies
-    user_ratings = UserRating.query.filter(
-        UserRating.movie_id.in_([movie.id for movie in movies]),
-        UserRating.user_id == current_user.id
+    user_ratings = MovieRating.query.filter(
+        MovieRating.movie_id.in_([movie.id for movie in movies]),
+        MovieRating.user_id == current_user.id
     ).all()
 
     # fetch distinct genres
@@ -104,23 +109,23 @@ def rate_movie(movie_id):
     user_rating = request.form.get('user_rating')
 
     # Check if the user has already rated the movie
-    existing_rating = UserRating.query.filter_by(user_id=current_user.id, movie_id=movie_id).first()
-
-    if existing_rating:
-        # Update the existing rating
-        existing_rating.rating = user_rating
-        flash('Rating updated successfully!', 'success')
-    else:
-        # Create a new Rating instance and add it to the database
-        rating = UserRating(user_id=current_user.id, movie_id=movie_id, rating=user_rating)
-        db.session.add(rating)
-        flash('Rating submitted successfully!', 'success')
+    existing_rating = MovieRating.query.filter_by(user_id=current_user.id, movie_id=movie_id).first()
 
     try:
+        if existing_rating:
+            # Update the existing rating
+            existing_rating.rating = user_rating
+            flash('Rating updated successfully!', 'success')
+        else:
+            # Create a new Rating instance and add it to the database
+            rating = MovieRating(user_id=current_user.id, movie_id=movie_id, rating=user_rating, timestamp=int(time.time()))
+            db.session.add(rating)
+            flash('Rating submitted successfully!', 'success')
         db.session.commit()
-    except IntegrityError:
+
+    except IntegrityError as e:
         db.session.rollback()
-        flash('Error updating rating. Please try again.', 'danger')
+        flash(f'Error updating rating ({e.orig}). Please try again.', 'danger')
 
     return redirect(url_for('user_ratings', user_id=current_user.id))
 
@@ -129,16 +134,18 @@ def user_ratings(user_id):
     # Fetch all movies rated by the user with ID user_id
     user_rated_movies = (
         Movie.query
-        .join(UserRating)  # Join the UserRating table
-        .filter(UserRating.user_id == current_user.id)
-        .add_columns(UserRating.rating)  # Include the UserRating.rating in the result
+        .join(MovieRating)  # Join the MovieRating table
+        .filter(MovieRating.user_id == user_id)
+        .add_columns(MovieRating.rating)  # Include the MovieRating.rating in the result
         .all()
     )
     # Render the user ratings page with the fetched data
     return render_template('user_ratings.html', rated_movies=user_rated_movies)
+
+"""
 def get_user_similarity_matrix():
     # Fetch all user ratings
-    user_ratings = UserRating.query.all()
+    user_ratings = MovieRating.query.all()
 
     # Create a user-movie matrix
     user_movie_matrix = pd.DataFrame(index=User.query.all(), columns=Movie.query.all())
@@ -152,16 +159,44 @@ def get_user_similarity_matrix():
     user_similarity = cosine_similarity(user_movie_matrix)
 
     return user_similarity
+"""
+
+def get_user_similarity_matrix():
+    # Fetch all user ratings
+    user_ratings = MovieRating.query.all()
+
+    # Create lists to store user IDs, movie IDs, and ratings
+    user_ids = []
+    movie_ids = []
+    ratings = []
+
+    # Iterate through ratings and populate the lists
+    for i, rating in enumerate(user_ratings):
+        user_ids.append(rating.user_id)
+        movie_ids.append(rating.movie_id)
+        ratings.append(rating.rating)
+
+    # Create a user-movie matrix using DataFrame constructor
+    user_movie_matrix = pd.DataFrame(data={'user_id': user_ids, 'movie_id': movie_ids, 'rating': ratings})
+    user_movie_matrix = user_movie_matrix.pivot(index='user_id', columns='movie_id', values='rating').fillna(0)
+
+    # Calculate user similarity using cosine similarity
+    user_similarity = cosine_similarity(user_movie_matrix)
+
+    return user_similarity
 
 def get_movie_recommendations(user_id, user_similarity_matrix,num_recommendations=10):
     # Fetch all movies rated by the user
-    user_rated_movies = UserRating.query.filter_by(user_id=user_id).all()
+    user_rated_movies = MovieRating.query.filter_by(user_id=user_id).all()
+
+    print(f"\n User rated movies: \n {user_rated_movies} \n")
 
     # Create a dictionary to store predicted ratings for unrated movies
     predicted_ratings = {}
 
-    for movie in Movie.query.all():
+    for i, movie in enumerate(Movie.query.all()):
         if not any(rating.movie_id == movie.id for rating in user_rated_movies):
+            print(f"Predict rating for movie {movie.id}. {i}/{len(Movie.query.all())}")
             # Predict the rating for unrated movies
             predicted_rating = predict_rating(user_id, movie, user_similarity_matrix)
             predicted_ratings[movie.id] = predicted_rating
@@ -175,14 +210,14 @@ def get_movie_recommendations(user_id, user_similarity_matrix,num_recommendation
 
 def predict_rating(user_id, movie, user_similarity_matrix):
     # Fetch ratings for the current movie from other users
-    ratings_for_movie = UserRating.query.filter_by(movie_id=movie.id).all()
+    ratings_for_movie = MovieRating.query.filter_by(movie_id=movie.id).all()
 
     # Calculate weighted average based on user similarity
     weighted_sum = 0
     similarity_sum = 0
 
     for rating in ratings_for_movie:
-        similarity = user_similarity_matrix[user_id, rating.user_id]
+        similarity = user_similarity_matrix[user_id-1, rating.user_id-1]
         weighted_sum += similarity * rating.rating
         similarity_sum += abs(similarity)
 

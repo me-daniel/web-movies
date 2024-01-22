@@ -30,7 +30,6 @@ class Movie(db.Model):
     tags = db.relationship('MovieTag', backref='movie', lazy=True)
     links = db.relationship('MovieLink', backref='movie', lazy=True)
     ratings = db.relationship('MovieRating', backref='movie',lazy=True)
-    user_ratings=db.relationship('UserRating',backref='movie',lazy=True)
 
     def average_rating(self):
         ratings = [rating.rating for rating in self.ratings]
@@ -69,10 +68,3 @@ class MovieTag(db.Model):
     movie_id = db.Column(db.Integer, db.ForeignKey('movies.id'), nullable=False)
     tag = db.Column(db.String(255), nullable=False, server_default='',unique=True)
     timestamp = db.Column(db.Integer, nullable=False)
-class UserRating(db.Model):
-    __tablename__ = 'user_ratings'
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, nullable=False)
-    movie_id = db.Column(db.Integer, db.ForeignKey('movies.id'), nullable=False)
-    rating = db.Column(db.Float, nullable=False)
-    __table_args__ = (UniqueConstraint('user_id', 'movie_id', name='_user_movie_uc'),)
