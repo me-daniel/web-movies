@@ -206,11 +206,8 @@ def get_movie_recommendations(user_id, knn_model, user_movie_matrix, num_recomme
 
     # Get movie recommendations
     recommendations = list(zip(user_movie_matrix.index[indices], distances))
-    # Filter out movies that the user has already rated
-    user_rated_movie_ids = [rating.movie_id for rating in user_ratings if rating.user_id == user_id]
-    recommended_movie_ids = [movie_id for movie_id, _ in recommendations if movie_id not in user_rated_movie_ids]
 
-    return recommended_movie_ids
+    return recommendations
 # Example usage in the 'recommendations' route
 @app.route('/recommendations')
 def recommendations_page():
@@ -226,6 +223,7 @@ def recommendations_page():
     # Get movie recommendations for the current user
     user_id = current_user.id
     recommendations = get_movie_recommendations(user_id, knn_model, user_movie_matrix)
+    
     # Fetch detailed movie information for the recommendations
     recommended_movies = Movie.query.options(joinedload(Movie.links), joinedload(Movie.tags)).filter(Movie.id.in_([movie_id for movie_id, _ in recommendations])).all()
     user_ratings = MovieRating.query.filter(
