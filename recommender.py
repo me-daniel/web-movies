@@ -144,70 +144,9 @@ def user_ratings(user_id):
     # Render the user ratings page with the fetched data
     return render_template('user_ratings.html', rated_movies=user_rated_movies)
 
-"""
-def get_user_similarity_matrix():
-    # Fetch all user ratings
-    user_ratings = MovieRating.query.all()
 
-    # Create a user-movie matrix
-    user_movie_matrix = pd.DataFrame(index=User.query.all(), columns=Movie.query.all())
-    for rating in user_ratings:
-        user_movie_matrix.loc[rating.user_id, rating.movie_id] = rating.rating
+### RECOMMENDER ###
 
-    # Fill NaN values with 0 (unrated movies)
-    user_movie_matrix = user_movie_matrix.fillna(0)
-
-    # Calculate user similarity using cosine similarity
-    user_similarity = cosine_similarity(user_movie_matrix)
-
-    return user_similarity
-"""
-
-def get_user_similarity_matrix():
-    # Fetch all user ratings
-    user_ratings = MovieRating.query.all()
-
-    # Create lists to store user IDs, movie IDs, and ratings
-    user_ids = []
-    movie_ids = []
-    ratings = []
-
-    # Iterate through ratings and populate the lists
-    for i, rating in enumerate(user_ratings):
-        user_ids.append(rating.user_id)
-        movie_ids.append(rating.movie_id)
-        ratings.append(rating.rating)
-
-    # Create a user-movie matrix using DataFrame constructor
-    user_movie_matrix = pd.DataFrame(data={'user_id': user_ids, 'movie_id': movie_ids, 'rating': ratings})
-    user_movie_matrix = user_movie_matrix.pivot(index='user_id', columns='movie_id', values='rating').fillna(0)
-
-    # Calculate user similarity using cosine similarity
-    user_similarity = cosine_similarity(user_movie_matrix)
-
-    return user_similarity
-def create_knn_model(user_movie_matrix):
-    # Convert to CSR matrix for memory efficiency
-    csr_data = csr_matrix(user_movie_matrix.values)
-    knn_model = NearestNeighbors(metric='cosine', algorithm='brute', n_neighbors=20, n_jobs=-1)
-    knn_model.fit(csr_data)
-    return knn_model
-
-def get_movie_recommendations(user_id, knn_model, user_movie_matrix, num_recommendations=10):
-    # Get the index of the user in the user-movie matrix
-    user_index = user_movie_matrix.index.get_loc(user_id)
-
-    # Get the k-nearest neighbors
-    distances, indices = knn_model.kneighbors(user_movie_matrix.iloc[user_index, :].values.reshape(1, -1), n_neighbors=num_recommendations + 1)
-
-    # Exclude the user itself from recommendations
-    distances = distances.flatten()[1:]
-    indices = indices.flatten()[1:]
-
-    # Get movie recommendations
-    recommendations = list(zip(user_movie_matrix.index[indices], distances))
-
-    return recommendations
 # Example usage in the 'recommendations' route
 @app.route('/recommendations')
 def recommendations_page():
@@ -230,8 +169,33 @@ def recommendations_page():
         MovieRating.movie_id.in_([movie.id for movie in recommended_movies]),
         MovieRating.user_id == current_user.id
     ).all()
+
     user_ratings_dict = {rating.movie_id: rating.rating for rating in user_ratings}
+
     return render_template("recommendations.html", recommended_movies=recommended_movies,user_ratings=user_ratings_dict)
+
+def create_knn_model(user_movie_matrix):
+    # Convert to CSR matrix for memory efficiency
+    csr_data = csr_matrix(user_movie_matrix.values)
+    knn_model = NearestNeighbors(metric='cosine', algorithm='brute', n_neighbors=20, n_jobs=-1)
+    knn_model.fit(csr_data)
+    return knn_model
+
+def get_movie_recommendations(user_id, knn_model, user_movie_matrix, num_recommendations=5):
+    # Get the index of the user in the user-movie matrix
+    user_index = user_movie_matrix.index.get_loc(user_id)
+
+    # Get the k-nearest neighbors
+    distances, indices = knn_model.kneighbors(user_movie_matrix.iloc[user_index, :].values.reshape(1, -1), n_neighbors=num_recommendations + 1)
+
+    # Exclude the user itself from recommendations
+    distances = distances.flatten()[1:]
+    indices = indices.flatten()[1:]
+
+    # Get movie recommendations
+    recommendations = list(zip(user_movie_matrix.index[indices], distances))
+
+    return recommendations
 
 # Start development web server
 if __name__ == '__main__':
