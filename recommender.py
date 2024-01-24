@@ -129,7 +129,8 @@ def rate_movie(movie_id):
         db.session.rollback()
         flash(f'Error updating rating ({e.orig}). Please try again.', 'danger')
 
-    return redirect(url_for('user_ratings', user_id=current_user.id))
+    #return redirect(url_for('user_ratings', user_id=current_user.id))
+    return redirect(url_for('movies_page', _anchor=f'movie_{movie_id}'))
 
 @app.route('/user_ratings/<int:user_id>')
 def user_ratings(user_id):

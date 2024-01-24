@@ -68,14 +68,13 @@
                     {{ user_ratings[m.id] }}
                 </span></p>
                 
-                <form id="rating-form" action="/rate_movie/{{ m.id }}" target="_blank" method="post" class="form-flex mb-3">
+                <form id="rating-form-{{ m.id }}" action="{{ url_for('rate_movie', movie_id=m.id) }}" method="post" class="form-flex mb-3">
                     <!-- Use a hidden input to send the movie ID -->
                     <input type="hidden" name="user_rating" id="user-rating-{{ m.id }}" value="{{ your_rating }}">
-                    <input type="hidden" name="movie_id" id="movie-id" value="{{ m.id }}">
+                    <input type="hidden" name="movie_id" id="movie-id-{{ m.id }}" value="{{ m.id }}">
                     <!-- Add a submit button to submit the form -->
                     <button type="submit" class="btn btn-primary">Submit Rating</button>
-                    
-                </form> 
+                </form>
             </div> 
         </div>
     </div>
