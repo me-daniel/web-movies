@@ -1,3 +1,31 @@
+<style>
+    .pagination {
+        list-style-type: none;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .pagination a,
+    .pagination strong {
+        display: inline-block;
+        padding: 8px 16px;
+        margin: 2px;
+        border: 1px solid #ddd;
+        color: #555;
+        text-decoration: none;
+    }
+
+    .pagination a:hover {
+        background-color: #ddd;
+    }
+
+    .pagination strong {
+        background-color: lightblue; /* Change to the desired color */
+        color: white;
+    }
+</style>
+
 {% extends "flask_user_layout.html" %}
 {% block content %}
 <div class="container">
@@ -79,21 +107,21 @@
         </div>
     </div>
     {% endfor %}
-<div class="pagination">
-    {{ pagination.prev() }}
-    {% for page in pagination.iter_pages() %}
-        {% if page %}
-            {% if page != pagination.page %}
-                <a href="{{ url_for('movies_page', page=page, rating=selected_rating, genre=selected_genre) }}">{{ page }}</a>
+    <div class="pagination">
+        {{ pagination.prev() }}
+        {% for page in pagination.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=1) %}
+            {% if page %}
+                {% if page != pagination.page %}
+                    <a href="{{ url_for('movies_page', page=page, rating=selected_rating, genre=selected_genre) }}">{{ page }}</a>
+                {% else %}
+                    <strong>{{ page }}</strong>
+                {% endif %}
             {% else %}
-                <strong>{{ page }}</strong>
+                ...
             {% endif %}
-        {% else %}
-            ...
-        {% endif %}
-    {% endfor %}
-    {{ pagination.next() }}
-</div>
+        {% endfor %}
+        {{ pagination.next() }}
+    </div>
 
     <script>
         function updateSelectedRating(rating, movieId) {
