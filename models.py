@@ -30,12 +30,14 @@ class Movie(db.Model):
     tags = db.relationship('MovieTag', backref='movie', lazy=True)
     links = db.relationship('MovieLink', backref='movie', lazy=True)
     ratings = db.relationship('MovieRating', backref='movie',lazy=True)
-
-    def average_rating(self):
+    average_rating = db.Column(db.Float, nullable=False, server_default='0.0')
+    def update_average_rating(self):
         ratings = [rating.rating for rating in self.ratings]
         avg_rating = sum(ratings) / len(ratings) if ratings else 0
-        return round(avg_rating, 2)
-    
+        self.average_rating = round(avg_rating, 2)
+        return round(avg_rating,2)
+   
+
     def unique_tags(self):
         # Extract unique tags using a set comprehension
         return {tag.tag for tag in self.tags}

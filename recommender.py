@@ -4,6 +4,7 @@ from flask import Flask, render_template,request,redirect,url_for,flash
 from flask_user import login_required, UserManager,current_user
 from sqlalchemy.orm import joinedload
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy import and_
 from models import db, User, Movie, MovieGenre, MovieRating, MovieLink
 from read_data import check_and_read_data
 from sklearn.metrics.pairwise import cosine_similarity
@@ -11,13 +12,16 @@ from sklearn.neighbors import NearestNeighbors
 from scipy.sparse import csr_matrix
 import pandas as pd
 import time
+from flask_migrate import Migrate
+
+
 
 # Class-based application configuration
 class ConfigClass(object):
     """ Flask application config """
 
     # Flask settings
-    SECRET_KEY = 'This is an INSECURE secret!! DO NOT use this in production!!'
+    SECRET_KEY = '2bef57524b5499608bbbad31e3c180283a3588f092b4bf919aabd598a0a3cbe4'#generated secret token
 
     # Flask-SQLAlchemy settings
     SQLALCHEMY_DATABASE_URI = 'sqlite:///movie_recommender.sqlite'  # File-based SQL database
@@ -41,12 +45,13 @@ app.jinja_env.filters['pad_zero'] = pad_zero
 db.init_app(app)  # initialize database
 db.create_all()  # create database if necessary
 user_manager = UserManager(app, db, User)  # initialize Flask-User management
-
+migrate = Migrate(app, db)
 
 @app.cli.command('initdb')
 def initdb_command():
     global db
     """Creates the database tables."""
+    db.create_all()
     check_and_read_data(db)
     print('Initialized the database.')
 
@@ -68,21 +73,33 @@ def movies_page():
     # get genre filter input
     selected_genre = request.args.get('genre')
     query = request.args.get('query')
-    # Fetch all movies or filtered movies based on genre
+    movies_query = Movie.query
+    conditions = []
+
     if selected_genre:
-        movies_query = Movie.query.filter(Movie.genres.any(MovieGenre.genre == selected_genre))
-    else:
-        movies_query = Movie.query
-    
+        conditions.append(Movie.genres.any(MovieGenre.genre == selected_genre))
+
+    if selected_rating:
+        conditions.append(Movie.average_rating >= float(selected_rating))
+
+    # Apply conditions to the query
     if query:
         movies_query = Movie.query.filter(Movie.title.ilike(f'%{query}%'))
-
+    else:
+        if conditions:
+            movies_query = movies_query.filter(and_(*conditions))
+        
     # Pagination
     page = request.args.get('page', 1, type=int)
     per_page = 10  # Set the number of movies per page
     paginated_movies = movies_query.paginate(page=page, per_page=per_page, error_out=False)
     movies = paginated_movies.items
-
+    """
+    updated average rating for each movie
+    for movie in movies:
+        movie.update_average_rating()
+    db.session.commit()
+    """
     # Fetch user ratings for the displayed movies
     user_ratings = MovieRating.query.filter(
         MovieRating.movie_id.in_([movie.id for movie in movies]),
@@ -114,14 +131,18 @@ def rate_movie(movie_id):
     existing_rating = MovieRating.query.filter_by(user_id=current_user.id, movie_id=movie_id).first()
 
     try:
+        movie = Movie.query.get_or_404(movie_id)
         if existing_rating:
             # Update the existing rating
             existing_rating.rating = user_rating
             flash('Rating updated successfully!', 'success')
         else:
+            movie.update_average_rating()
             # Create a new Rating instance and add it to the database
             rating = MovieRating(user_id=current_user.id, movie_id=movie_id, rating=user_rating, timestamp=int(time.time()))
             db.session.add(rating)
+            #rating added by user also influences average rating
+            
             flash('Rating submitted successfully!', 'success')
         db.session.commit()
 

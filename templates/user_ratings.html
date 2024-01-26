@@ -27,12 +27,12 @@
         <!-- display the average rating. to do: integrate into default rating display below. -->
         <p class="text">Average Rating:
             <span class="star-rating-1">
-                {% set rounded_avg_rating = m.average_rating()|round(0) %}
+                {% set rounded_avg_rating = m.average_rating%}
                 {% for i in range(1, 6) %}
                     <label for="rate-{{ m.id }}-{{ i }}" style="--i:{{ i }}"><i class="fa-solid fa-star {% if i <= rounded_avg_rating %}filled{% endif %}"></i></label>
                 {% endfor %}
             </span>
-            {{ m.average_rating()|round(2) }}
+            {{ m.average_rating}}
         </p>
         <div class="your_rating">
             <p class="text">Your Rating: <span class="star-rating" id="star-rating-{{ m.id }}">

@@ -68,7 +68,14 @@ h1{
     margin: 1rem 0.5rem 0.5rem 0.5rem;
 	font-size: larger;
 }
-
+.header_title.panel{
+	font-family: "Rubik Maps";
+	font-size: x-large;
+	margin:1rem;
+	background-color: transparent;
+	color: #ddd;
+	font-weight: 200;
+}
 .btn{
 	border-radius: 2rem;
 	margin:0 0.5rem 0 0.5rem;
@@ -119,4 +126,37 @@ h1{
 .header{
 	font-family:"Permanent Marker";
 	color: #000;
+	font-size:5rem;
+}
+.pagination {
+	list-style-type: none;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	
+}
+
+.pagination a,
+.pagination strong {
+	display: inline-block;
+	padding: 8px 16px;
+	margin: 2px;
+	border: 0.2rem solid #ddd;
+	color:white;
+	text-decoration: none;
+	border-radius: 40%;
+}
+
+.pagination a:hover {
+	background-color: #ddd;
+	border-radius: 10%;
+	transition: all 0.2s;
+	color: #000;
+	
+}
+
+.pagination strong {
+	background-color: whitesmoke; /* Change to the desired color */
+	color: black;
+	
 }
